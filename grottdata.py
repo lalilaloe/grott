@@ -504,89 +504,89 @@ def procdata(conf,data):
 
         # process pvoutput if enabled
         if conf.pvoutput:
-    import requests
-
-    pvidfound = False
-    if conf.pvinverters == 1:
-        pvssid = conf.pvsystemid[1]
-        pvidfound = True
-    else:
-        for pvnum, pvid in conf.pvinverterid.items():
-            if pvid == definedkey["pvserial"]:
-                print(pvid)
-                pvssid = conf.pvsystemid[pvnum]
+            import requests
+        
+            pvidfound = False
+            if conf.pvinverters == 1:
+                pvssid = conf.pvsystemid[1]
                 pvidfound = True
-
-    if not pvidfound:
-        if conf.verbose:
-            print("\t - " + "pvsystemid not found for inverter : ", definedkey["pvserial"])
-    else:
-        if not pvout_limit.ok_send(definedkey["pvserial"], conf):
-            if conf.verbose:
-                print("\t - " + "PVOutput update skipped due to time limitation")
-        else:
-            if conf.verbose:
-                print("\t - " + "Grott send data to PVOutput systemid: ", pvssid, "for inverter: ", definedkey["pvserial"])
-            pvheader = {
-                "X-Pvoutput-Apikey": conf.pvapikey,
-                "X-Pvoutput-SystemId": pvssid
-            }
-
-            pvodate = jsondate[:4] + jsondate[5:7] + jsondate[8:10]
-            pvotime = jsondate[11:16]
-
-            if header[14:16] != "20":
-                pvdata = {
-                    "d": pvodate,
-                    "t": pvotime,
-                    "v2": definedkey["pvpowerout"]/10,
-                    "v6": definedkey["pvgridvoltage"]/10
-                }
-                if not conf.pvdisv1:
-                    pvdata["v1"] = definedkey["pvenergytoday"]*100
+            else:
+                for pvnum, pvid in conf.pvinverterid.items():
+                    if pvid == definedkey["pvserial"]:
+                        print(pvid)
+                        pvssid = conf.pvsystemid[pvnum]
+                        pvidfound = True
+        
+            if not pvidfound:
+                if conf.verbose:
+                    print("\t - " + "pvsystemid not found for inverter : ", definedkey["pvserial"])
+            else:
+                if not pvout_limit.ok_send(definedkey["pvserial"], conf):
+                    if conf.verbose:
+                        print("\t - " + "PVOutput update skipped due to time limitation")
                 else:
                     if conf.verbose:
-                        print("\t - " + "Grott PVOutput send V1 disabled")
-
-                if conf.pvtemp:
-                    pvdata["v5"] = definedkey["pvtemperature"]/10
-
-                if conf.verbose:
-                    print("\t\t - ", pvheader)
-                    print("\t\t - ", pvdata)
-                reqret = requests.post(conf.pvurl, data=pvdata, headers=pvheader)
-                if conf.verbose:
-                    print("\t - " + "Grott PVOutput response: ")
-                    print("\t\t - ", reqret.text)
-            else:
-                pvdata1 = {
-                    "d": pvodate,
-                    "t": pvotime,
-                    "v3": definedkey["pos_act_energy"]*100,
-                    "c1": 3,
-                    "v6": definedkey["voltage_l1"]/10
-                }
-
-                pvdata2 = {
-                    "d": pvodate,
-                    "t": pvotime,
-                    "v4": definedkey["pos_rev_act_power"]/10,
-                    "v6": definedkey["voltage_l1"]/10,
-                    "n": 1
-                }
-
-                if conf.verbose:
-                    print("\t\t - ", pvheader)
-                    print("\t\t - ", pvdata1)
-                    print("\t\t - ", pvdata2)
-                reqret = requests.post(conf.pvurl, data=pvdata1, headers=pvheader)
-                if conf.verbose:
-                    print("\t - " + "Grott PVOutput response SM1: ")
-                    print("\t\t - ", reqret.text)
-                reqret = requests.post(conf.pvurl, data=pvdata2, headers=pvheader)
-                if conf.verbose:
-                    print("\t - " + "Grott PVOutput response SM2: ")
-                    print("\t\t - ", reqret.text)
+                        print("\t - " + "Grott send data to PVOutput systemid: ", pvssid, "for inverter: ", definedkey["pvserial"])
+                    pvheader = {
+                        "X-Pvoutput-Apikey": conf.pvapikey,
+                        "X-Pvoutput-SystemId": pvssid
+                    }
+        
+                    pvodate = jsondate[:4] + jsondate[5:7] + jsondate[8:10]
+                    pvotime = jsondate[11:16]
+        
+                    if header[14:16] != "20":
+                        pvdata = {
+                            "d": pvodate,
+                            "t": pvotime,
+                            "v2": definedkey["pvpowerout"]/10,
+                            "v6": definedkey["pvgridvoltage"]/10
+                        }
+                        if not conf.pvdisv1:
+                            pvdata["v1"] = definedkey["pvenergytoday"]*100
+                        else:
+                            if conf.verbose:
+                                print("\t - " + "Grott PVOutput send V1 disabled")
+        
+                        if conf.pvtemp:
+                            pvdata["v5"] = definedkey["pvtemperature"]/10
+        
+                        if conf.verbose:
+                            print("\t\t - ", pvheader)
+                            print("\t\t - ", pvdata)
+                        reqret = requests.post(conf.pvurl, data=pvdata, headers=pvheader)
+                        if conf.verbose:
+                            print("\t - " + "Grott PVOutput response: ")
+                            print("\t\t - ", reqret.text)
+                    else:
+                        pvdata1 = {
+                            "d": pvodate,
+                            "t": pvotime,
+                            "v3": definedkey["pos_act_energy"]*100,
+                            "c1": 3,
+                            "v6": definedkey["voltage_l1"]/10
+                        }
+        
+                        pvdata2 = {
+                            "d": pvodate,
+                            "t": pvotime,
+                            "v4": definedkey["pos_rev_act_power"]/10,
+                            "v6": definedkey["voltage_l1"]/10,
+                            "n": 1
+                        }
+        
+                        if conf.verbose:
+                            print("\t\t - ", pvheader)
+                            print("\t\t - ", pvdata1)
+                            print("\t\t - ", pvdata2)
+                        reqret = requests.post(conf.pvurl, data=pvdata1, headers=pvheader)
+                        if conf.verbose:
+                            print("\t - " + "Grott PVOutput response SM1: ")
+                            print("\t\t - ", reqret.text)
+                        reqret = requests.post(conf.pvurl, data=pvdata2, headers=pvheader)
+                        if conf.verbose:
+                            print("\t - " + "Grott PVOutput response SM2: ")
+                            print("\t\t - ", reqret.text)
         else:
             if conf.verbose:
                 print("\t - " + "Grott Send data to PVOutput disabled ")
